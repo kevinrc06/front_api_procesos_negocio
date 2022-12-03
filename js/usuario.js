@@ -20,15 +20,70 @@ async function login(){
     const request = await fetch(urlApi+"/auth/login",settings);
     //console.log(await request.text());
     if(request.ok){
-        console.log("hola mundo",request)
-        const respuesta = await request.json();
-        localStorage.token = respuesta.detail;
+        
+        const respuesta = await request.text();
+        localStorage.token = respuesta;
 
         //localStorage.token = respuesta;
         localStorage.correo = jsonData.correo;      
         location.href= "dashboard.html";
     }
 }
+/*async function login(){
+    let correo = document.querySelector('#myForm #correo').value;
+    let contraseña = document.querySelector('#myForm #password').value;
+    var jsonData = {
+        "correo":correo,
+        "password":contraseña,
+     
+        };
+    /*var myForm = document.getElementById("myForm");
+    var formData = new FormData(myForm);
+    var jsonData = {};
+    for(var [k, v] of formData){//convertimos los datos a json
+        jsonData[k] = v;
+    }*/
+    /*console.log(jsonData);
+
+    var settings={
+        method: 'POST',
+        headers:{
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(jsonData)
+    }
+    const request = await fetch(urlApi+"/auth/login",settings);
+    //console.log(await request.text());
+    if(request.ok){
+        Swal.fire({
+            position: 'top-end',
+            icon: 'success',
+            title: 'logeado exitosamente',
+            showConfirmButton: false,
+            timer: 1500
+          })
+        const respuesta = await request.text();
+       
+        localStorage.token = respuesta;
+        
+        //localStorage.token = respuesta;
+        localStorage.correo = jsonData.correo; 
+        setTimeout(function () {
+            location.href= "dashboard.html";
+        }, 2000);     
+        
+       
+    }else{
+        Swal.fire({
+            position: 'top-end',
+            icon: 'error',
+            text: 'los datos del usuario no son validos',
+            showConfirmButton: false,
+            timer: 3000
+          });
+    }
+}*/
 
 function listarUsuarios(){
     validaToken();
@@ -52,6 +107,7 @@ function listarUsuarios(){
                     <th scope="row">${usuario.id}</th>
                     <td>${usuario.nombre}</td>
                     <td>${usuario.apellidos}</td>
+                    <td>${usuario.documento}</td>
                     <td>${usuario.correo}</td>
                     <td>
                     <button type="button" class="btn btn-outline-danger" 
@@ -65,6 +121,7 @@ function listarUsuarios(){
                         <i class="fa-solid fa-eye"></i>
                     </a>
                     '</td>
+                    <br/>
                 </tr>`;
                 
             }
@@ -83,9 +140,9 @@ function eliminaUsuario(id){
         },
     }
     fetch(urlApi+"/usuario/"+id,settings)
-    .then(response => response.json())
+    .then(response => response.text())
     .then(function(data){
-        listar();
+        listarUsuarios();
         alertas("Se ha eliminado el usuario exitosamente!",2)
     })
 }
@@ -110,12 +167,14 @@ function verModificarUsuario(id){
                     <h1 class="display-5"><i class="fa-solid fa-user-pen"></i> Modificar Usuario</h1>
                 </div>
               
-                <form action="" method="post" id="myForm">
+                <form action="" method="post" id="myForm2">
                     <input type="hidden" name="id" id="id" value="${usuario.id}">
                     <label for="nombre" class="form-label">First Name</label>
                     <input type="text" class="form-control" name="nombre" id="nombre" required value="${usuario.nombre}"> <br>
                     <label for="apellidos"  class="form-label">Last Name</label>
                     <input type="text" class="form-control" name="apellidos" id="apellidos" required value="${usuario.apellidos}"> <br>
+                    <label for="documento" class="form-label">docuemnto</label>
+                    <input type="text" class="form-control" name="documento" id="documento" required value="${usuario.documento}"> <br>
                     <label for="correo" class="form-label">correo</label>
                     <input type="correo" class="form-control" name="correo" id="correo" required value="${usuario.correo}"> <br>
                     <label for="password" class="form-label">Password</label>
@@ -133,7 +192,7 @@ function verModificarUsuario(id){
 
 async function modificarUsuario(id){
     validaToken();
-    var myForm = document.getElementById("myForm");
+    var myForm = document.getElementById("myForm2");
     var formData = new FormData(myForm);
     var jsonData = {};
     for(var [k, v] of formData){//convertimos los datos a json
@@ -148,7 +207,7 @@ async function modificarUsuario(id){
         },
         body: JSON.stringify(jsonData)
     });
-    listar();
+    listarUsuarios();
     alertas("Se ha modificado el usuario exitosamente!",1)
     document.getElementById("contentModal").innerHTML = '';
     var myModalEl = document.getElementById('modalUsuario')
@@ -204,13 +263,14 @@ function alertas(mensaje,tipo){
     document.getElementById("alerta").innerHTML = alerta;
 }
 
+
 function registerForm(){
     cadena = `
             <div class="p-3 mb-2 bg-light text-dark">
                 <h1 class="display-5"><i class="fa-solid fa-user-pen"></i> Registrar Usuario</h1>
             </div>
               
-            <form action="" method="post" id="myForm">
+            <form action="" method="post" id="myForm1">
                 <input type="hidden" name="id" id="id">
                 <label for="nombre" class="form-label">First Name</label>
                 <input type="text" class="form-control" name="nombre" id="nombre" required> <br>
@@ -219,7 +279,7 @@ function registerForm(){
                 <label for="documento"  class="form-label">documento</label>
                 <input type="text" class="form-control" name="documento" id="documento" required> <br>
                 <label for="correo" class="form-label">correo</label>
-                <input type="correo" class="form-control" name="correo" id="correo" required> <br>
+                <input type="text" class="form-control" name="correo" id="correo" required> <br>
                 <label for="password" class="form-label">Password</label>
                 <input type="password" class="form-control" id="password" name="password" required> <br>
                 <button type="button" class="btn btn-outline-info" onclick="registrarUsuario()">Registrar</button>
@@ -230,7 +290,7 @@ function registerForm(){
 }
 
 async function registrarUsuario(){
-    var myForm = document.getElementById("myForm");
+    var myForm = document.getElementById("myForm1");
     var formData = new FormData(myForm);
     var jsonData = {};
     for(var [k, v] of formData){//convertimos los datos a json
@@ -244,8 +304,8 @@ async function registrarUsuario(){
         },
         body: JSON.stringify(jsonData)
     });
-    listarUsuarios();
-    alertas("Se ha registrado el usuario exitosamente!",1)
+    //listarUsuarios();
+    //alertas("Se ha registrado el usuario exitosamente!",1)
     document.getElementById("contentModal").innerHTML = '';
     var myModalEl = document.getElementById('modalUsuario')
     var modal = bootstrap.Modal.getInstance(myModalEl) // Returns a Bootstrap modal instance
